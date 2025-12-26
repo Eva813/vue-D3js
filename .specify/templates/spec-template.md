@@ -84,16 +84,19 @@
 
 ### Functional Requirements
 
-- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]  
-- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
-- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
-- **FR-005**: System MUST [behavior, e.g., "log all security events"]
+- **FR-001**: Component MUST [specific capability, e.g., "render D3 visualization with interactive tooltips"]
+- **FR-002**: System MUST [specific capability, e.g., "handle data updates without full re-render"]  
+- **FR-003**: Users MUST be able to [key interaction, e.g., "filter visualization by category"]
+- **FR-004**: Component MUST [data requirement, e.g., "support datasets with >10k items via virtualization"]
+- **FR-005**: System MUST [accessibility, e.g., "provide keyboard navigation for all interactive elements"]
 
-*Example of marking unclear requirements:*
+### Quality Requirements (Constitution-Driven)
 
-- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
-- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
+- **QR-001**: All code MUST be TypeScript with strict mode enabled
+- **QR-002**: All features MUST have test coverage ≥80% (unit + integration tests)
+- **QR-003**: All interactive components MUST meet WCAG AA accessibility standards
+- **QR-004**: Component render performance MUST be <16ms for 60fps
+- **QR-005**: Visual design MUST follow centralized design system with CSS variables
 
 ### Key Entities *(include if feature involves data)*
 
