@@ -1,0 +1,15 @@
+{
+  "$schema": "https://oxc.rs/schema.json",
+  "rules": {
+    "typescript": "warn",
+    "correctness": "warn",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "plugins": ["vue"],
+  "settings": {
+    "vue": {
+      "version": "3"
+    }
+  }
+}
