@@ -1,4 +1,25 @@
-## Standards  標準
+# Project Guidelines
+
+## Build & Test 建構與測試
+```bash
+pnpm dev              # 啟動開發伺服器
+pnpm build            # TypeScript 檢查 + Vite 建構
+pnpm lint             # Oxlint + ESLint 完整檢查
+pnpm lint:fix:all     # 雙重自動修復
+```
+
+## Architecture 架構
+```
+src/
+├── components/charts/   # D3 圖表元件
+├── types/               # 共用類型定義 (chart.types.ts)
+specs/                   # 規格文件與 API 合約
+.agent/skills/           # 45 條最佳實踐規則
+```
+- **路徑別名**：`@` → `./src`
+- **參考實作**：[SimpleBarChart.vue](../src/components/charts/SimpleBarChart.vue)
+
+## Standards 標準
 MUST FOLLOW THESE RULES, NO EXCEPTIONS
 - Stack: Vue.js, TypeScript, Vue Router, Pinia, D3.js
 - Patterns: ALWAYS use Composition API + <script setup>, NEVER use Options API
@@ -82,6 +103,13 @@ They can be used in the template like this:
 <UserForm v-model:first-name="user.firstName" v-model:age="user.age" />
 ```
 
+## D3.js + Vue Integration 整合模式
+- Use `ref(null)` for SVG container reference, pass to D3 via `d3.select(svgRef.value)`
+- Initialize D3 in `onMounted()`, update via `watch()` with `{ deep: true }`
+- Clear before redraw: `d3.select(svgRef.value).selectAll('*').remove()`
+- Emit D3 events to Vue: `.on('click', (_event, d) => emit('bar-click', d))`
+- Use Vue `ref()` for tooltip state, update in D3 mouse events
+- Use `:deep()` in scoped CSS for D3-generated elements: `:deep(.x-axis text)`
 
 ## Modifiers & Transformations
 Native elements v-model has built-in modifiers like .lazy, .number, and .trim. We can implement similar functionality in components, fetch and read https://vuejs.org/guide/components/v-model.md#handling-v-model-modifiers if the user needs that.
