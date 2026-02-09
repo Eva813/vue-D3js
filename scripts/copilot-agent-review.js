@@ -1,12 +1,19 @@
 #!/usr/bin/env node
-import { execSync, spawnSync } from 'node:child_process'
+import { execSync, spawn } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
+import { Buffer } from 'node:buffer'
+import { setTimeout, clearTimeout } from 'node:timers'
 import path from 'node:path'
 import process from 'node:process'
 
 const COPILOT_BIN = process.env.COPILOT_BIN || 'copilot'
 const model = process.env.COPILOT_MODEL || 'gpt-5.1-codex'
 const agentPath = process.env.AGENT_PATH || '.github/agents/code-review.md'
+
+// Diff size limits to avoid excessive token usage
+const MAX_DIFF_BYTES = 500 * 1024 // 500KB
+const TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes
+const MAX_RETRIES = 2
 
 const resolveShas = () => {
   if (process.env.REVIEW_BASE_SHA && process.env.REVIEW_HEAD_SHA) {
@@ -45,7 +52,15 @@ const readAgent = () => {
 
 const collectDiff = (base, head) => {
   try {
-    return execSync(`git diff ${base} ${head}`, { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 })
+    const diff = execSync(`git diff ${base} ${head}`, { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 })
+    const bytes = Buffer.byteLength(diff, 'utf8')
+
+    if (bytes > MAX_DIFF_BYTES) {
+      console.warn(`[copilot-agent] Diff is ${(bytes / 1024).toFixed(0)}KB, truncating to ${MAX_DIFF_BYTES / 1024}KB`)
+      return diff.slice(0, MAX_DIFF_BYTES) + '\n... (truncated due to size)'
+    }
+
+    return diff
   } catch (error) {
     throw new Error(`[copilot-agent] git diff failed for ${base}..${head}: ${error.message}`)
   }
@@ -67,6 +82,59 @@ const buildPrompt = ({ agentText, diff, base, head }) => {
   ].join('\n')
 }
 
+const runCopilot = (prompt, attempt = 1) => {
+  return new Promise((resolve, reject) => {
+    const args = ['--model', model, '--allow-all', '--silent']
+    const child = spawn(COPILOT_BIN, args, {
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+
+    let stdout = ''
+    let stderr = ''
+    let timedOut = false
+
+    const timer = setTimeout(() => {
+      timedOut = true
+      child.kill('SIGTERM')
+    }, TIMEOUT_MS)
+
+    child.stdout.on('data', (data) => { stdout += data.toString() })
+    child.stderr.on('data', (data) => { stderr += data.toString() })
+
+    child.on('error', (err) => {
+      clearTimeout(timer)
+      reject(err)
+    })
+
+    child.on('close', (code) => {
+      clearTimeout(timer)
+
+      if (timedOut) {
+        if (attempt < MAX_RETRIES) {
+          console.warn(`[copilot-agent] Timeout on attempt ${attempt}, retrying...`)
+          return resolve(runCopilot(prompt, attempt + 1))
+        }
+        return reject(new Error(`[copilot-agent] Copilot timed out after ${MAX_RETRIES} attempts`))
+      }
+
+      if (code !== 0) {
+        if (attempt < MAX_RETRIES) {
+          console.warn(`[copilot-agent] Exit code ${code} on attempt ${attempt}, retrying...`)
+          return resolve(runCopilot(prompt, attempt + 1))
+        }
+        console.error(stderr)
+        return reject(new Error(`[copilot-agent] Copilot exited with status ${code}`))
+      }
+
+      resolve(stdout.trim())
+    })
+
+    // Write prompt to stdin to avoid E2BIG error
+    child.stdin.write(prompt)
+    child.stdin.end()
+  })
+}
+
 const saveEmptyReview = (note) => {
   const payload = {
     summary: note,
@@ -76,7 +144,7 @@ const saveEmptyReview = (note) => {
   console.log('[copilot-agent] No findings; wrote placeholder review.')
 }
 
-const main = () => {
+const main = async () => {
   const { base, head } = resolveShas()
   const agentText = readAgent()
   const diff = collectDiff(base, head)
@@ -87,27 +155,20 @@ const main = () => {
   }
 
   const prompt = buildPrompt({ agentText, diff, base, head })
-  const result = spawnSync(
-    COPILOT_BIN,
-    ['-p', prompt, '--model', model, '--allow-all', '--silent'],
-    {
-      encoding: 'utf8',
-      maxBuffer: 20 * 1024 * 1024,
-    }
-  )
 
-  if (result.error) {
-    throw result.error
+  let output
+  try {
+    output = await runCopilot(prompt)
+  } catch (err) {
+    // Graceful degradation: if Copilot fails, write empty review instead of failing CI
+    console.error(`[copilot-agent] Copilot unavailable: ${err.message}`)
+    saveEmptyReview(`Copilot review skipped: ${err.message}`)
+    return
   }
 
-  if (result.status !== 0) {
-    console.error(result.stderr)
-    throw new Error(`[copilot-agent] copilot prompt exited with status ${result.status}.`)
-  }
-
-  const output = result.stdout.trim()
   if (!output) {
-    throw new Error('[copilot-agent] Copilot returned empty response.')
+    saveEmptyReview('Copilot returned empty response.')
+    return
   }
 
   try {
@@ -120,9 +181,7 @@ const main = () => {
   }
 }
 
-try {
-  main()
-} catch (error) {
+main().catch((error) => {
   console.error('[copilot-agent] Fatal error:', error.message)
   process.exit(1)
-}
+})

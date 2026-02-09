@@ -51,6 +51,8 @@ Analyze the selected code for:
 6. **Dependencies & Secrets**
    - Highlight vulnerable dependency bumps (CVSS >= 7)
    - Detect hardcoded tokens, URLs with embedded credentials, or insecure defaults
+   - Flag patterns: `ghp_`, `gho_`, `AKIA`, `xox[baprs]-`, `BEGIN RSA PRIVATE KEY`
+   - Check for high-entropy strings that may be secrets
    - Verify `pnpm-lock.yaml` changes include rationale
 
 ## Output Format

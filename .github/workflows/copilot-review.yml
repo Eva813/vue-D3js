@@ -110,6 +110,18 @@ jobs:
       - name: Run dependency vulnerability scan
         run: node scripts/vulnerability-scan.js
 
+      - name: Run secret scan
+        id: secret-scan
+        run: |
+          set -euo pipefail
+          node scripts/secret-scan.js || echo "secret_found=true" >> "$GITHUB_OUTPUT"
+
+      - name: Block PR if secrets detected
+        if: steps.secret-scan.outputs.secret_found == 'true'
+        run: |
+          echo "::error::Potential secrets detected in code changes. Review .github/secret-scan-report.json"
+          exit 1
+
       - name: Copilot secret and security scan
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -153,6 +165,20 @@ jobs:
           test -s copilot-review.json || { echo '::error::Missing copilot-review.json'; exit 1; }
           test -s copilot-security.sarif || { echo '::error::Missing copilot-security.sarif'; exit 1; }
           test -s .github/copilot-audit-report.json || { echo '::error::Missing .github/copilot-audit-report.json'; exit 1; }
+
+      - name: Check for critical findings and block PR
+        id: check-findings
+        run: |
+          set -euo pipefail
+          CRITICAL=$(jq '.findings | map(select(.severity == "critical")) | length' copilot-review.json 2>/dev/null || echo 0)
+          HIGH=$(jq '.findings | map(select(.severity == "high")) | length' copilot-review.json 2>/dev/null || echo 0)
+          echo "critical_count=$CRITICAL" >> "$GITHUB_OUTPUT"
+          echo "high_count=$HIGH" >> "$GITHUB_OUTPUT"
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "::error::Found $CRITICAL critical findings in Copilot review"
+            exit 1
+          fi
+          echo "✅ No critical findings (high: $HIGH)"
 
       - name: Post Copilot summary comment
         if: github.event_name == 'pull_request'
@@ -233,3 +259,4 @@ jobs:
             copilot-review.json
             copilot-security.sarif
             .github/copilot-audit-report.json
+            .github/secret-scan-report.json
