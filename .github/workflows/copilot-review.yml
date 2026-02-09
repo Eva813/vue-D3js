@@ -103,9 +103,14 @@ jobs:
             --config .github/copilot-audit.json \
             --output sarif > copilot-security.sarif || true
 
+          if [ ! -s copilot-security.sarif ]; then
+            echo "Warning: copilot-security.sarif is empty. Creating empty SARIF."
+            echo '{ "version": "2.1.0", "runs": [] }' > copilot-security.sarif
+          fi
+
       - name: Upload security findings
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: copilot-security.sarif
           category: copilot-security
