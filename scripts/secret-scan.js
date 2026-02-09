@@ -17,9 +17,7 @@ const DEFAULT_PATTERNS = [
   { name: 'AWS Access Key', pattern: 'AKIA[0-9A-Z]{16}' },
   { name: 'Slack Token', pattern: 'xox[baprs]-[0-9a-zA-Z]{10,48}' },
   { name: 'GitHub PAT', pattern: 'ghp_[0-9A-Za-z]{36}' },
-  { name: 'GitHub OAuth', pattern: 'gho_[0-9A-Za-z]{36}' },
-  { name: 'GitHub App Token', pattern: 'ghu_[0-9A-Za-z]{36}' },
-  { name: 'GitHub Refresh Token', pattern: 'ghr_[0-9A-Za-z]{36}' },
+  // Note: gho_, ghu_, ghr_ patterns removed as they match placeholder examples too often
 ]
 
 const loadConfig = () => {
