@@ -1,0 +1,202 @@
+name: Copilot Automated Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/agents/**'
+      - '.github/workflows/copilot-review.yml'
+      - '.github/copilot-audit.json'
+      - 'scripts/vulnerability-scan.js'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/agents/**'
+      - '.github/workflows/copilot-review.yml'
+      - '.github/copilot-audit.json'
+      - 'scripts/vulnerability-scan.js'
+
+env:
+  NODE_VERSION: '20'
+  COPILOT_MODEL: 'gpt-5.1-codex'
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  quality-checks:
+    name: Type check, lint, and tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable corepack and install pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.12.3 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run lint
+        run: pnpm lint
+
+      - name: Run unit tests
+        run: pnpm test:run
+
+      - name: Build (type-check)
+        run: pnpm build
+
+  copilot-review:
+    name: Copilot CLI review and security scan
+    needs: quality-checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable corepack and install pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.12.3 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Run dependency vulnerability scan
+        run: node scripts/vulnerability-scan.js
+
+      - name: Copilot secret and security scan
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COPILOT_MODEL: ${{ env.COPILOT_MODEL }}
+        run: |
+          copilot scan \
+            --config .github/copilot-audit.json \
+            --output sarif > copilot-security.sarif || true
+
+      - name: Upload security findings
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: copilot-security.sarif
+          category: copilot-security
+
+      - name: Copilot code review
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COPILOT_MODEL: ${{ env.COPILOT_MODEL }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE_SHA="${{ github.sha }}~1"
+            HEAD_SHA="${{ github.sha }}"
+          fi
+
+          copilot review \
+            --base "$BASE_SHA" \
+            --head "$HEAD_SHA" \
+            --focus "security,performance,code-quality,dependency-risk" \
+            --agent-config ".github/agents/code-review.md" \
+            --output json > copilot-review.json || true
+
+          cat copilot-review.json
+
+      - name: Post Copilot summary comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs')
+            const reviewPath = 'copilot-review.json'
+            const auditPath = '.github/copilot-audit-report.json'
+
+            const readJson = (filepath) => {
+              if (!fs.existsSync(filepath)) return null
+              try { return JSON.parse(fs.readFileSync(filepath, 'utf8')) } catch (e) { return null }
+            }
+
+            const review = readJson(reviewPath) || {}
+            const audit = readJson(auditPath) || { severityCounts: {}, packageSummary: [] }
+
+            const findings = Array.isArray(review.findings) ? review.findings : []
+            const criticalCount = findings.filter((it) => it.severity?.toLowerCase() === 'critical').length
+            const highCount = findings.filter((it) => it.severity?.toLowerCase() === 'high').length
+
+            const severityCounts = audit.severityCounts || {}
+            const pkgSummary = Array.isArray(audit.packageSummary) ? audit.packageSummary : []
+
+            const severityRank = { unknown: 0, low: 1, medium: 2, high: 3, critical: 4 }
+            pkgSummary.sort((a, b) => {
+              const sa = severityRank[a.highestSeverity] || 0
+              const sb = severityRank[b.highestSeverity] || 0
+              if (sb !== sa) return sb - sa
+              return (b.count || 0) - (a.count || 0)
+            })
+
+            let body = '## 🤖 Copilot 自動化程式碼審查\n\n'
+            body += `- 🔴 AI Critical findings: ${criticalCount}\n`
+            body += `- 🟡 AI High findings: ${highCount}\n`
+            body += `- 📊 Dependency severity counts: ${JSON.stringify(severityCounts)}\n\n`
+
+            if (findings.length > 0) {
+              body += '### AI: 主要問題（前 5）\n'
+              findings.slice(0, 5).forEach((f) => {
+                const loc = f.file ? `${f.file}:${f.line || ''}` : 'N/A'
+                body += `- **${f.title || 'Issue'}** (${loc}) — ${f.description || ''}\n`
+              })
+              body += '\n'
+            } else {
+              body += '沒有由 Copilot 回報的新增問題（AI）。\n\n'
+            }
+
+            if (pkgSummary.length > 0) {
+              body += '### 📦 Top dependency risks\n'
+              pkgSummary.slice(0, 10).forEach((p) => {
+                const url = (p.urls && p.urls.length) ? ` ([details](${p.urls[0]}))` : ''
+                body += `- **${p.name}** — ${p.highestSeverity} (${p.count})${url}\n  - versions: ${p.versions.slice(0,3).join(', ') || 'n/a'}\n`
+              })
+              if (audit.moreFindings) body += `\n_另外有 ${audit.moreFindings} 個被截斷的發現。_\n`
+            } else {
+              body += '沒有偵測到高風險相依性。\n'
+            }
+
+            body += '\n> 完整輸出請查看 workflow artifacts 或 `.github/copilot-audit-report.json`。'
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            })

@@ -138,7 +138,7 @@ onUnmounted(() => {
     <svg
       ref="svgRef"
       class="bar-chart"
-    ></svg>
+    />
     <div
       v-show="tooltip.visible"
       class="tooltip"
@@ -147,8 +147,12 @@ onUnmounted(() => {
         top: `${tooltip.y}px`
       }"
     >
-      <div class="tooltip-label">label: {{ tooltip.label }}</div>
-      <div class="tooltip-value">value: {{ tooltip.value }}</div>
+      <div class="tooltip-label">
+        label: {{ tooltip.label }}
+      </div>
+      <div class="tooltip-value">
+        value: {{ tooltip.value }}
+      </div>
     </div>
   </div>
 </template>
