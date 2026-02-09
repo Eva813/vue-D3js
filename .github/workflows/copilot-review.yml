@@ -134,21 +134,14 @@ jobs:
           sarif_file: copilot-security.sarif
           category: copilot-security
 
-      - name: Copilot code review
+      - name: Copilot agent review
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COPILOT_MODEL: ${{ env.COPILOT_MODEL }}
+          AGENT_PATH: .github/agents/code-review.md
         run: |
           set -euo pipefail
-
-          copilot review \
-            --agent-config ".github/agents/code-review.md" \
-            --output json > copilot-review.json
-
-          if [ ! -s copilot-review.json ]; then
-            echo "::error::copilot-review.json is empty."
-            exit 1
-          fi
+          node scripts/copilot-agent-review.js
 
           cat copilot-review.json
 
