@@ -142,7 +142,6 @@ jobs:
           set -euo pipefail
 
           copilot review \
-            --focus "security,performance,code-quality,dependency-risk" \
             --agent-config ".github/agents/code-review.md" \
             --output json > copilot-review.json
 
