@@ -87,11 +87,14 @@ const main = () => {
   }
 
   const prompt = buildPrompt({ agentText, diff, base, head })
-  const result = spawnSync(COPILOT_BIN, ['prompt', '--model', model], {
-    input: prompt,
-    encoding: 'utf8',
-    maxBuffer: 20 * 1024 * 1024,
-  })
+  const result = spawnSync(
+    COPILOT_BIN,
+    ['-p', prompt, '--model', model, '--allow-all', '--silent'],
+    {
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+    }
+  )
 
   if (result.error) {
     throw result.error
