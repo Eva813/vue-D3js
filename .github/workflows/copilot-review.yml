@@ -49,6 +49,14 @@ jobs:
           corepack enable
           corepack prepare pnpm@9.12.3 --activate
 
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store/v3
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -84,6 +92,14 @@ jobs:
         run: |
           corepack enable
           corepack prepare pnpm@9.12.3 --activate
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store/v3
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -197,7 +213,7 @@ jobs:
               body += '沒有偵測到高風險相依性。\n'
             }
 
-            body += '\n> 完整輸出請查看 workflow artifacts 或 `.github/copilot-audit-report.json`。'
+            body += '\n> 完整輸出請查看 workflow artifact `copilot-reports`（包含 `copilot-review.json`、`copilot-security.sarif`、`.github/copilot-audit-report.json`）。'
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -205,3 +221,14 @@ jobs:
               repo: context.repo.repo,
               body
             })
+
+      - name: Upload Copilot reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: copilot-reports
+          if-no-files-found: ignore
+          path: |
+            copilot-review.json
+            copilot-security.sarif
+            .github/copilot-audit-report.json
