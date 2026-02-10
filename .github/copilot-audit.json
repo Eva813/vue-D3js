@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "securityChecks": {
+    "cwe": [
+      "CWE-79",
+      "CWE-89",
+      "CWE-352",
+      "CWE-200",
+      "CWE-327"
+    ],
+    "owaspTop10": [
+      "A01-broken-access-control",
+      "A02-cryptographic-failures",
+      "A03-injection",
+      "A04-insecure-design",
+      "A05-security-misconfiguration",
+      "A07-identification-and-authentication-failures",
+      "A08-software-and-data-integrity-failures"
+    ],
+    "vueRules": [
+      "Validate all props that accept external input",
+      "Never interpolate unsanitized HTML unless using v-html with trusted data",
+      "Prefer computed refs over watchers for derived values",
+      "Guard D3 event payloads before mutating component state"
+    ]
+  },
+  "secrets": {
+    "blockedPatterns": [
+      "BEGIN RSA PRIVATE KEY",
+      "AKIA[0-9A-Z]{16}",
+      "xox[baprs]-[0-9a-zA-Z]{10,48}",
+      "ghp_[0-9A-Za-z]{36}"
+    ],
+    "allowedDomains": [
+      "github.com",
+      "vercel.app"
+    ],
+    "maxEntropy": 4.0
+  },
+  "dependencies": {
+    "maxSeverity": "high",
+    "allowPrerelease": false,
+    "ignoredPackages": [
+      "@types/*"
+    ]
+  }
+}

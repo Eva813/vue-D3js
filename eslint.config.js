@@ -45,6 +45,17 @@ export default [
     },
   },
 
+  // Node.js 腳本配置
+  {
+    files: ['scripts/**/*.js'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+      },
+    },
+  },
+
   // 忽略檔案
   {
     ignores: [

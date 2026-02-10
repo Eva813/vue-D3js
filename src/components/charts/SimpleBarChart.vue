@@ -85,7 +85,7 @@ function renderChart() {
     .attr('fill', 'steelblue')
     .style('cursor', 'pointer')
     // 互動：hover 效果
-    .on('mouseenter', function(event, d) {
+    .on('mouseenter', function(_event, d) {
       d3.select(this).attr('fill', 'orange')
       
       // 顯示 tooltip：定位在 bar 中心
@@ -138,7 +138,7 @@ onUnmounted(() => {
     <svg
       ref="svgRef"
       class="bar-chart"
-    ></svg>
+    />
     <div
       v-show="tooltip.visible"
       class="tooltip"
@@ -147,8 +147,12 @@ onUnmounted(() => {
         top: `${tooltip.y}px`
       }"
     >
-      <div class="tooltip-label">label: {{ tooltip.label }}</div>
-      <div class="tooltip-value">value: {{ tooltip.value }}</div>
+      <div class="tooltip-label">
+        label: {{ tooltip.label }}
+      </div>
+      <div class="tooltip-value">
+        value: {{ tooltip.value }}
+      </div>
     </div>
   </div>
 </template>

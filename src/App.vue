@@ -12,7 +12,10 @@ const chartData = ref<ChartData[]>([
 ])
 
 function handleBarClick(data: ChartData) {
-  alert(`你點擊了 ${data.label}，數值為 ${data.value}`)
+  const message = `你點擊了 ${data.label}，數值為 ${data.value}`
+  if (typeof globalThis.alert === 'function') {
+    globalThis.alert(message)
+  }
 }
 
 function randomizeData() {
@@ -44,9 +47,15 @@ function removeBar() {
     <h1>Vue 3 + D3.js 長條圖範例</h1>
     
     <div class="controls">
-      <button @click="randomizeData">🎲 隨機更新數值</button>
-      <button @click="addBar">➕ 新增長條</button>
-      <button @click="removeBar">➖ 移除長條</button>
+      <button @click="randomizeData">
+        🎲 隨機更新數值
+      </button>
+      <button @click="addBar">
+        ➕ 新增長條
+      </button>
+      <button @click="removeBar">
+        ➖ 移除長條
+      </button>
     </div>
     
     <SimpleBarChart
