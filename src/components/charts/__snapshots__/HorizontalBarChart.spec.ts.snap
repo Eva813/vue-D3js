@@ -1,0 +1,50 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HorizontalBarChart.vue > Rendering > matches snapshot 1`] = `
+"<div data-v-9549b38e="" class="horizontal-bar-chart-container"><svg data-v-9549b38e="" class="horizontal-bar-chart" width="700" height="400">
+    <g transform="translate(120,20)">
+      <rect x="0" y="16.190476190476204" width="343.75" height="64.76190476190476" fill="#4a90e2" style="cursor: pointer;"></rect>
+      <rect x="0" y="97.14285714285715" width="550" height="64.76190476190476" fill="#4a90e2" style="cursor: pointer;"></rect>
+      <rect x="0" y="178.0952380952381" width="206.25" height="64.76190476190476" fill="#4a90e2" style="cursor: pointer;"></rect>
+      <rect x="0" y="259.04761904761904" width="412.5" height="64.76190476190476" fill="#4a90e2" style="cursor: pointer;"></rect>
+      <g class="x-axis" transform="translate(0,340)" fill="none" font-size="10" font-family="sans-serif" text-anchor="middle">
+        <path class="domain" stroke="currentColor" d="M0.5,6V0.5H550.5V6"></path>
+        <g class="tick" opacity="1" transform="translate(0.5,0)">
+          <line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">0</text>
+        </g>
+        <g class="tick" opacity="1" transform="translate(138,0)">
+          <line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">10</text>
+        </g>
+        <g class="tick" opacity="1" transform="translate(275.5,0)">
+          <line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">20</text>
+        </g>
+        <g class="tick" opacity="1" transform="translate(413,0)">
+          <line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">30</text>
+        </g>
+        <g class="tick" opacity="1" transform="translate(550.5,0)">
+          <line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em">40</text>
+        </g>
+      </g>
+      <g class="y-axis" fill="none" font-size="10" font-family="sans-serif" text-anchor="end">
+        <path class="domain" stroke="currentColor" d="M-6,0.5H0.5V340.5H-6"></path>
+        <g class="tick" opacity="1" transform="translate(0,48.571428571428584)">
+          <line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">Category A</text>
+        </g>
+        <g class="tick" opacity="1" transform="translate(0,129.52380952380952)">
+          <line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">Category B</text>
+        </g>
+        <g class="tick" opacity="1" transform="translate(0,210.47619047619048)">
+          <line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">Category C</text>
+        </g>
+        <g class="tick" opacity="1" transform="translate(0,291.42857142857144)">
+          <line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em">Category D</text>
+        </g>
+      </g>
+    </g>
+  </svg>
+  <div data-v-9549b38e="" class="tooltip" style="left: 0px; top: 0px; display: none;">
+    <div data-v-9549b38e="" class="tooltip-label"></div>
+    <div data-v-9549b38e="" class="tooltip-value"> 保單數量: 0</div>
+  </div>
+</div>"
+`;
