@@ -17,6 +17,14 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: '產險業務員保單績效'
     }
+  },
+  {
+    path: '/claims',
+    name: 'claims',
+    component: () => import('@/views/ClaimsView.vue'),
+    meta: {
+      title: '賠案險種統計'
+    }
   }
 ]
 

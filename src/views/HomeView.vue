@@ -58,6 +58,11 @@ function removeBar() {
       </button>
     </div>
     
+    <div class="demo-links">
+      <router-link to="/insurance-agents" class="demo-link">產險業務員保單績效 (橫向長條圖)</router-link>
+      <router-link to="/claims" class="demo-link">賠案險種統計 (分佈圖)</router-link>
+    </div>
+
     <SimpleBarChart
       :data="chartData"
       :width="800"
@@ -87,6 +92,29 @@ h1 {
   margin: 20px 0;
   display: flex;
   gap: 10px;
+}
+
+.demo-links {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.demo-link {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #f0f0f0;
+  color: #333;
+  text-decoration: none;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  transition: all 0.2s;
+}
+
+.demo-link:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 button {

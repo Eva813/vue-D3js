@@ -21,6 +21,12 @@ import { RouterLink, RouterView } from 'vue-router'
         >
           產險業務員績效
         </RouterLink>
+        <RouterLink 
+          :to="{ name: 'claims' }"
+          class="nav-link"
+        >
+          賠案險種統計
+        </RouterLink>
       </div>
     </nav>
     

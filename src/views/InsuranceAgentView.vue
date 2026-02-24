@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import HorizontalBarChart from '@/components/charts/HorizontalBarChart.vue'
+import ClaimsDistributionChart from '@/components/charts/ClaimsDistributionChart.vue'
 import type { ChartData } from '@/types/chart.types'
+import type { ClaimsData } from '@/types/claims.types'
 
 // 產險業務員資料
 const agentData = ref<ChartData[]>([
@@ -84,6 +86,65 @@ const statistics = computed(() => {
     maxAgent: maxAgent?.label || ''
   }
 })
+
+// 賠案險種及理賠金額分布資料 (Mock Data from Screenshot)
+const claimsData = ref<ClaimsData[]>([
+  {
+    id: 'c1',
+    category: '車體',
+    count: 10,
+    amountDistribution: [
+      { range: '500,000 以上', count: 0 },
+      { range: '300,001-500,000', count: 1 },
+      { range: '150,001-300,000', count: 0 },
+      { range: '100,001-150,000', count: 3 },
+      { range: '25,001-100,000', count: 6 },
+      { range: '25,000 以下', count: 0 }
+    ]
+  },
+  {
+    id: 'c2',
+    category: '竊盜',
+    count: 0,
+    amountDistribution: []
+  },
+  {
+    id: 'c3',
+    category: '責任',
+    count: 6,
+    amountDistribution: [
+      { range: '500,000 以上', count: 0 },
+      { range: '300,001-500,000', count: 0 },
+      { range: '150,001-300,000', count: 1 },
+      { range: '100,001-150,000', count: 2 },
+      { range: '25,001-100,000', count: 3 },
+      { range: '25,000 以下', count: 0 }
+    ]
+  },
+  {
+    id: 'c4',
+    category: '傷害',
+    count: 0,
+    amountDistribution: []
+  },
+  {
+    id: 'c5',
+    category: '其他',
+    count: 2,
+    amountDistribution: [
+      { range: '500,000 以上', count: 0 },
+      { range: '300,001-500,000', count: 0 },
+      { range: '150,001-300,000', count: 0 },
+      { range: '100,001-150,000', count: 0 },
+      { range: '25,001-100,000', count: 1 },
+      { range: '25,000 以下', count: 1 }
+    ]
+  }
+])
+
+function handleCategorySelect(category: string) {
+  console.log('Selected category:', category)
+}
 </script>
 
 <template>
@@ -141,11 +202,27 @@ const statistics = computed(() => {
     </div>
     
     <div class="chart-section">
+      <div class="chart-container-title">
+        <h2>業務員績效 (長條圖)</h2>
+      </div>
       <HorizontalBarChart
         :data="sortedData"
         :width="800"
         :height="350"
         @bar-click="handleBarClick"
+      />
+    </div>
+
+    <!-- New Section for Claims Chart -->
+    <div class="chart-section claims-section">
+      <div class="chart-header">
+        <h2>賠案險種及理賠金額分布</h2>
+      </div>
+      <ClaimsDistributionChart
+        :data="claimsData"
+        :width="800"
+        :height="400"
+        @category-select="handleCategorySelect"
       />
     </div>
     
@@ -285,12 +362,36 @@ button {
 
 .chart-section {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 40px;
   padding: 20px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.chart-header {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 20px;
+  padding-left: 20px;
+}
+
+.chart-header h2 {
+  font-size: 20px;
+  color: #333;
+  margin: 0;
+}
+
+.chart-container-title {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.claims-section {
+  background: #fff; /* Ensure white background for better visibility */
 }
 
 .data-table {
