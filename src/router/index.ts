@@ -25,6 +25,14 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: '賠案險種統計'
     }
+  },
+  {
+    path: '/basic-info',
+    name: 'basic-info',
+    component: () => import('@/views/BasicInfoView.vue'),
+    meta: {
+      title: '基本資料'
+    }
   }
 ]
 

@@ -59,8 +59,24 @@ function removeBar() {
     </div>
     
     <div class="demo-links">
-      <router-link to="/insurance-agents" class="demo-link">產險業務員保單績效 (橫向長條圖)</router-link>
-      <router-link to="/claims" class="demo-link">賠案險種統計 (分佈圖)</router-link>
+      <router-link
+        to="/insurance-agents"
+        class="demo-link"
+      >
+        產險業務員保單績效 (橫向長條圖)
+      </router-link>
+      <router-link
+        to="/claims"
+        class="demo-link"
+      >
+        賠案險種統計 (分佈圖)
+      </router-link>
+      <router-link
+        to="/basic-info"
+        class="demo-link"
+      >
+        基本資料 (Figma 畫面)
+      </router-link>
     </div>
 
     <SimpleBarChart

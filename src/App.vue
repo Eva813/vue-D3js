@@ -27,6 +27,12 @@ import { RouterLink, RouterView } from 'vue-router'
         >
           賠案險種統計
         </RouterLink>
+        <RouterLink
+          :to="{ name: 'basic-info' }"
+          class="nav-link"
+        >
+          基本資料
+        </RouterLink>
       </div>
     </nav>
     
