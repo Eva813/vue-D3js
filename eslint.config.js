@@ -32,6 +32,9 @@ export default [
       },
     },
     rules: {
+      // TypeScript 會處理型別名稱，避免 no-undef 誤判 DOM 型別
+      'no-undef': 'off',
+
       // Vue 相關規則
       'vue/multi-word-component-names': 'warn',
       'vue/no-unused-vars': 'warn',
